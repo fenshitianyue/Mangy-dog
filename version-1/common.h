@@ -8,9 +8,13 @@
 const char* SERVER_IP = "127.0.0.1";
 
 //start message 
-#define SERVER_WELCOME "Welcome you join to the chat room! your chat ID : Clitnt #"
+#define SERVER_WELCOME "Welcome you join to the chat room! your chat ID : Clitnt #%d"
 //quit message
 #define SERVER_QUIT "bye bye!"
+//remind message
+#define REMIND "There is only one int the chat room!"
+//server normal reply
+#define SERVER_MESSAGE "Client ID:%d say:%s"
 
 //buffer size 
 #define BUF_SIZE 0xFFFF
