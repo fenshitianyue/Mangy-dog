@@ -1,4 +1,6 @@
 #pragma once 
+//header only
+#include <iostream>
 #include <cstdlib>
 #include <fcntl.h>
 #include <sys/epoll.h>
@@ -29,7 +31,12 @@ const char* SERVER_IP = "127.0.0.1";
 //check status if failure to print failure message 
 //parameter@num : external function return value
 //parameter@info : external function name
-void CheckPrint(const int num, const char* info);
+void CheckPrint(const int num, const char* info){
+  if(num < 0){
+    perror(info);
+    exit(EXIT_FAILURE);
+  }
+}
 
 
 //set the file descriptor to nonblocking
@@ -41,5 +48,14 @@ void CheckPrint(const int num, const char* info);
 //parameter@epollfd : epoll descripter
 //parameter@fd : socket descripter
 //parameter@enable_et : enable_et = true -> epoll use ET option, otherwise use LT option
-void addfd(int epollfd, int fd, bool enable_et);
-
+void addfd(int epollfd, int fd, bool enable_et){
+  struct epoll_event ev;
+  ev.data.fd = fd;
+  ev.events = EPOLLIN;
+  if(enable_et){
+    ev.events = EPOLLIN | EPOLLET;
+  }
+  epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev);
+  SETNONBLOCK(fd);
+  std::cout << "fd added to epoll!" << std::endl;
+}
