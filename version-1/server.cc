@@ -1,6 +1,11 @@
 #include <iostream>
-#include "common.h"
+#include <cstring>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
 #include "server.h"
+#include "common.h"
 
 void Server::Start(){
   /******************      Init server      *********************/
@@ -9,7 +14,7 @@ void Server::Start(){
   bzero(&serveraddr, sizeof(serveraddr));
   serveraddr.sin_family = PF_INET;
   serveraddr.sin_port = htons(SERVER_PORT);
-  inet_pton(AF_INET, SERVER_IP , &serveraddr.sin_addr);
+  inet_pton(AF_INET, "127.0.0.1" , &serveraddr.sin_addr);
  
   //2.Binding address
   int listener = socket(PF_INET, SOCK_STREAM, 0);
@@ -36,7 +41,7 @@ void Server::Start(){
     //2.Gets the ready event
     int epoll_events_count = epoll_wait(epfd, events, EPOLL_SIZE, -1);
     CheckPrint(epoll_events_count, "epoll_wait");
-    std::cout << "epoll_events_count : %d" << epoll_events_count << std::endl;
+    std::cout << "epoll_events_count : " << epoll_events_count << std::endl;
     //3.The loop handlers all events
     for(int i = 0; i < epoll_events_count; ++i){
       int sockfd = events[i].data.fd;
@@ -49,18 +54,20 @@ void Server::Start(){
                   << inet_ntoa(client_address.sin_addr)
                   << ":"
                   << ntohs(client_address.sin_port)
-                  << "clientfd : "
+                  << " clientfd : "
                   << clientfd
                   << std::endl;
+        //if(send(clientfd, CLIENT_MESSAGE_PREFEX, clientfd, 0) < 0) { perror("send"); exit(EXIT_FAILURE); } 
+        //if(send(clientfd, "[Client ID:%d]:", clientfd, 0) < 0) { perror("send"); exit(EXIT_FAILURE); } 
         addfd(epfd, clientfd, true);
         clients_list.push_back(clientfd);
         std::cout << "Add new clientfd(" << clientfd << ") to epoll" << std::endl;
         std::cout << "Number of people online now: " << static_cast<int>(clients_list.size()) <<std::endl;
         //The server sends a welcome message
-        char message[BUF_SIZE] = {0};
-        sprintf(message, SERVER_WELCOME, clientfd);
-        int ret = send(clientfd, message, BUF_SIZE, 0);
-        CheckPrint(ret, "send");
+        // char message[BUF_SIZE] = {0};
+        // sprintf(message, CLIENT_MESSAGE_PREFEX, clientfd);
+        // int ret = send(clientfd, message, BUF_SIZE, 0);
+        // CheckPrint(ret, "send");
       }else{
         //3.2 If it is new, the message is broadcast to another client
         int ret = SendBroadcastMessage(sockfd);
@@ -90,15 +97,15 @@ int Server::SendBroadcastMessage(int clientfd){
   }else{
     //3.Determine if there are other clients in the chat room
     if(1 == clients_list.size()){
-      send(clientfd, SERVER_WELCOME, sizeof(SERVER_WELCOME), 0); //maybe have bug
+      //send(clientfd, SERVER_WELCOME, sizeof(SERVER_WELCOME), 0); //maybe have bug
       return len;
     }
     //4.Format the content of the message sent
-    sprintf(message, SERVER_MESSAGE, clientfd, buf);
+    sprintf(message, MESSAGE_PREFEX, clientfd, buf);
     //5.Traverse the client list and send messages in turn
     for(const auto& it : clients_list){
       if(it != clientfd){
-        if(send(it, message, BUF_SIZE, 0) < 0) {perror("send"); exit(EXIT_FAILURE);}
+        if(send(it, message, BUF_SIZE, 0) < 0) { perror("send"); exit(EXIT_FAILURE); }
       }
     }
   }
