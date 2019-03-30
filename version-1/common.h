@@ -7,7 +7,7 @@
 
 /**********************           some config             *************************/
 #define SERVER_PORT 8888
-const char* SERVER_IP = "127.0.0.1";
+//const char* SERVER_IP = "127.0.0.1";
 
 //start message 
 #define SERVER_WELCOME "Welcome you join to the chat room! your chat ID : Clitnt #%d"
@@ -16,7 +16,7 @@ const char* SERVER_IP = "127.0.0.1";
 //remind message
 #define REMIND "There is only one int the chat room!"
 //server normal reply
-#define SERVER_MESSAGE "Client ID:%d say:%s"
+#define MESSAGE_PREFEX "[Client ID:%d]:%s"
 
 //buffer size 
 #define BUF_SIZE 0xFFFF
@@ -57,5 +57,5 @@ void addfd(int epollfd, int fd, bool enable_et){
   }
   epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev);
   SETNONBLOCK(fd);
-  std::cout << "fd added to epoll!" << std::endl;
+  //std::cout << "fd added to epoll!" << std::endl; //This log is later printed to the log file
 }
