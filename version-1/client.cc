@@ -1,3 +1,10 @@
+#include <iostream>
+#include <cstring>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include "common.h"
 #include "client.h"
 
 void Client::Start(){
@@ -7,7 +14,7 @@ void Client::Start(){
   bzero(&serveraddr, sizeof(serveraddr));
   serveraddr.sin_family = PF_INET;
   serveraddr.sin_port = htons(SERVER_PORT);
-  inet_pton(AF_INET, SERVER_IP, &serveraddr.sin_addr);
+  inet_pton(AF_INET, "127.0.0.1", &serveraddr.sin_addr);
   int sock= socket(PF_INET, SOCK_STREAM, 0);
   CheckPrint(sock, "socket");
   //2.Connect server 
@@ -36,8 +43,11 @@ void Client::Start(){
   CheckPrint(pid, "fork");
   if(0 == pid){ //child process
     close(pipe_fd[0]);
-    std::cout << "Input 'exit' to exit the chat room" << std::endl;
     while(IsClientWork){
+      bzero(message, sizeof(message));
+      //sprintf(message, "[Client ID:%d]: ", clientfd);
+      //客户端给每一个客户分配一个独有的ID，作为消息头打印，并且发送给服务器，保持消息头ID一致
+      //std::cout << "[Client ID:"<< ID << "]" << std::endl;
       fgets(message, BUF_SIZE, stdin);
       //client input 'exit', exit chat room
       if(0 == strncasecmp(message, "exit", strlen("exit"))){
